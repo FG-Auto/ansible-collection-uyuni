@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function)
 import logging
 import ssl
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from xmlrpc.client import DateTime, Fault, ServerProxy
 
 from .utilities import split_rpm_filename
@@ -1324,14 +1324,14 @@ class UyuniAPIClient:
         :param timeout: The maximum time to wait for the action to complete (in seconds).
         :param interval: The interval between status checks (in seconds).
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         end_time = start_time + timedelta(seconds=timeout)
-        while datetime.utcnow() < end_time:
+        while datetime.now(timezone.utc) < end_time:
             status = self.get_host_action(system_id, action_id)
             if status[0]['successful_count'] + status[0]['failed_count'] > 0:
                 return status
-            next_check = datetime.utcnow() + timedelta(seconds=interval)
-            while datetime.utcnow() < next_check:
+            next_check = datetime.now(timezone.utc) + timedelta(seconds=interval)
+            while datetime.now(timezone.utc) < next_check:
                 pass
         raise TimeoutError(f"Action {action_id} did not complete within {timeout} seconds")
 
