@@ -32,9 +32,9 @@ def SuMaConnection(sumaHost, sumaUser, sumaPwd):
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        sumaHost = dict(type='str', required=True),
-        sumaUser = dict(type='str', required=True),
-        sumaPwd =  dict(type='str', required=True),
+        uyuni_host = dict(type='str', required=True),
+        uyuni_user = dict(type='str', required=True),
+        uyuni_password =  dict(type='str', required=True),
         minion =   dict(type='str', required=True),
         minionUser = dict(type='str', required=False, default='root'),
         minionPort = dict(type='int', required=False, default=22),
@@ -74,7 +74,7 @@ def run_module():
         module.exit_json(**result)
 
     ##create connection to uyni/SuMa
-    with SuMaConnection(sumaHost=module.params['sumaHost'], sumaUser=module.params['sumaUser'], sumaPwd=module.params['sumaPwd']) as (client, key):
+    with SuMaConnection(sumaHost=module.params['uyuni_host'], sumaUser=module.params['uyuni_user'], sumaPwd=module.params['uyuni_password']) as (client, key):
         ## check if minion already registred
         allMinions = dict([ (x['name'], x) for x in client.system.listSystems(key)])
         if module.params['minion'] in allMinions:
