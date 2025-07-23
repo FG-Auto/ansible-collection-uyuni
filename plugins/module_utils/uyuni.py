@@ -44,7 +44,7 @@ class UyuniAPIClient:
 
     def __init__(
             self, log_level, hostname, username, password,
-            port=443, verify=True
+            port=443, verify=True, use_datetime = False
     ):
         """
         Constructor creating the class. It requires specifying a
@@ -81,6 +81,7 @@ class UyuniAPIClient:
         self._username = username
         self._password = password
         self._session = None
+        self._use_datetime = use_datetime
         self._connect()
         self.validate_api_support()
 
@@ -95,7 +96,7 @@ class UyuniAPIClient:
             else:
                 context = ssl.create_default_context()
 
-            self._session = ServerProxy(self.url, context=context)
+            self._session = ServerProxy(self.url, context=context, use_datetime=self._use_datetime)
             self._api_key = self._session.auth.login(
                 self._username, self._password
             )
@@ -139,7 +140,7 @@ class UyuniAPIClient:
         call = self._session
         for x in api_function.split('.') :
             call = getattr(call, x)
-        return call(self._key, *params)
+        return call(self._api_key, *params)
 
     def get_hosts(self):
         """
