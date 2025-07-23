@@ -70,7 +70,7 @@ def main():
                                   module.params.get('uyuni_user'),
                                   module.params.get('uyuni_password'),
                                   module.params.get('uyuni_port'),
-                                  verify_ssl=module.params.get('uyuni_verify_ssl'),
+                                  verify=module.params.get('uyuni_verify_ssl'),
                                   use_datetime=True,
                                  )
 
