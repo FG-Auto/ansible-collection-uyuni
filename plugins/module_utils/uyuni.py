@@ -7,6 +7,7 @@ import logging
 import ssl
 import base64
 from datetime import datetime, timedelta, timezone
+import time ## for sleep
 from xmlrpc.client import DateTime, Fault, ServerProxy
 
 from .utilities import split_rpm_filename
@@ -1330,9 +1331,7 @@ class UyuniAPIClient:
             status = self.get_host_action(system_id, action_id)
             if status[0]['successful_count'] + status[0]['failed_count'] > 0:
                 return status
-            next_check = datetime.now(timezone.utc) + timedelta(seconds=interval)
-            while datetime.now(timezone.utc) < next_check:
-                pass
+            time.sleep(interval)
         raise TimeoutError(f"Action {action_id} did not complete within {timeout} seconds")
 
     def full_pkg_update(self, system_id):
