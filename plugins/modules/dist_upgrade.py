@@ -64,37 +64,33 @@ def main():
     if module.check_mode:
          module.exit_json(**result)
 
-## I can't import UyuniAPIClient :(
-    # api_instance = UyuniAPIClient(logging.ERROR,
-    #                               module.params.get('uyuni_host'),
-    #                               module.params.get('uyuni_user'),
-    #                               module.params.get('uyuni_password'),
-    #                               module.params.get('uyuni_port'),
-    #                               verify_ssl=module.params.get('uyuni_verify_ssl'),
-    #                               use_datetime=True,
-    #                              )
 
-    # systemID = api_instance.get_host_id(module.params.get('name'))
-    # actionID = api_instance.execute_api_call("system.scheduleDistUpgrade", systemID, 
-    #                                                                        module.params.get('target_channels'),
-    #                                                                        False, ## <- dryRun
-    #                                                                        True,  ## <- allowVendorChange
-    #                                                                        datetime.now(timezone.utc)
+    api_instance = UyuniAPIClient(logging.ERROR,
+                                  module.params.get('uyuni_host'),
+                                  module.params.get('uyuni_user'),
+                                  module.params.get('uyuni_password'),
+                                  module.params.get('uyuni_port'),
+                                  verify_ssl=module.params.get('uyuni_verify_ssl'),
+                                  use_datetime=True,
+                                 )
 
-    #                                         )
-    # resWait = api_instance.wait_for_action(actionID, systemID)
+    systemID = api_instance.get_host_id(module.params.get('name'))
+    actionID = api_instance.execute_api_call("system.scheduleDistUpgrade", systemID, 
+                                                                           module.params.get('target_channels'),
+                                                                           False, ## <- dryRun
+                                                                           True,  ## <- allowVendorChange
+                                                                           datetime.now(timezone.utc)
 
+                                            )
+    resWait = api_instance.wait_for_action(actionID, systemID)
 
-
-
-    #result['changed'] = True
-    module.exit_json(**result)
-
-    # if resWait[0]['failed_count'] > 0:
-    #     result['message'] = "distUpgrade failed"
-    #     result['original_message'] = resWait[0]['result_msg']
-    # else :
-    #     module.exit_json(**result)
+    result['changed'] = True
+    
+    if resWait[0]['failed_count'] > 0:
+        result['message'] = "distUpgrade failed"
+        result['original_message'] = resWait[0]['result_msg']
+    else :
+        module.exit_json(**result)
 
 if __name__ == '__main__':
     main()
