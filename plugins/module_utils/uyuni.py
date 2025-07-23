@@ -135,6 +135,12 @@ class UyuniAPIClient:
                 "Unable to verify API version"
             ) from err
 
+    def execute_api_call(self, api_function : str, *params) :
+        call = self._session
+        for x in api_function.split('.') :
+            call = getattr(call, x)
+        return call(self._key, *params)
+
     def get_hosts(self):
         """
         Returns all system IDs
