@@ -1,6 +1,6 @@
 #!/usr/bin/python3.11
 """
-Ansible Module to perform a full dist upgarde of host
+Ansible Module to perform a change of channels on target host
 
 2025 Klaus Hildebrandt
 
@@ -24,9 +24,9 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: dist_upgrade
-short_description: Perform distribution upgarde of host
+short_description: Perform channel exchange on host
 description:
-  - Perform distribution upgrade (=update channels + 'zypper dup') of host
+  - Perform channel change on host
 author:
   - "Klaus Hildebrandt"
 '''
@@ -47,8 +47,12 @@ def main():
         uyuni_port=dict(default=443, type='int'),
         uyuni_verify_ssl=dict(default=True, type='bool'),
         name=dict(type='str', required=True),
-        target_channels=dict(type='list', required=True, elements='str'),  ## labels of channels
-    )
+        #target_channels=dict(type='list', required=True, elements='str'),  ## labels of channels
+        target_channels=dict(type='dict', required=True, options=dict(base     = dict(type='str', required=True),                  ## label of base channel
+                                                                      children = dict(type='list', required=True, elements='str'), ## labels of child channels
+                                                                     ),
+                            ),
+                         )
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -58,12 +62,11 @@ def main():
     result = dict(
                   changed=False,
                   original_message='',
-                  message=''
+                  msg=''
                  )
 
     if module.check_mode:
          module.exit_json(**result)
-
 
     api_instance = UyuniAPIClient(logging.ERROR,
                                   module.params.get('uyuni_host'),
@@ -75,20 +78,19 @@ def main():
                                  )
 
     systemID = api_instance.get_host_id(module.params.get('name'))
-    actionID = api_instance.execute_api_call("system.scheduleDistUpgrade", systemID, 
-                                                                           module.params.get('target_channels'),
-                                                                           False, ## <- dryRun
-                                                                           True,  ## <- allowVendorChange
-                                                                           datetime.now(timezone.utc)
-
+    actionID = api_instance.execute_api_call("system.scheduleChangeChannels", systemID, 
+                                                                              module.params['target_channels']['base'],
+                                                                              module.params['target_channels']['children'],
+                                                                              datetime.now(timezone.utc)
                                             )
-    resWait = api_instance.wait_for_action(actionID, systemID)
+    resWait = api_instance.wait_for_action(actionID, systemID, interval=3)
 
     result['changed'] = True
     
     if resWait[0]['failed_count'] > 0:
-        result['message'] = "distUpgrade failed"
+        result['msg'] = "ChangeChannels failed"
         result['original_message'] = resWait[0]['result_msg']
+        module.fail_json(**result)
     else :
         module.exit_json(**result)
 

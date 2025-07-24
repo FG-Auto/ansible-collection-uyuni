@@ -53,7 +53,7 @@ class LookupModule(LookupBase):
       #display.warning("type(terms): %s" % str(type(terms)))
       api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']), use_datetime=True)
       for term in terms:
-          display.warning("term: %s" % term)
+          #display.warning("term: %s" % term)
           systemID = api_instance.get_host_id(term)
           ret.append(api_instance.execute_api_call('system.listInstalledPackages', systemID))
 
