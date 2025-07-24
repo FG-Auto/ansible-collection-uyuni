@@ -33,6 +33,10 @@ DOCUMENTATION = r"""
 from ansible.plugins.lookup import LookupBase
 from ansible.utils.display import Display
 
+import logging
+
+from ..module_utils.uyuni import UyuniAPIClient
+
 display = Display()
 
 class LookupModule(LookupBase):
@@ -46,9 +50,12 @@ class LookupModule(LookupBase):
       # lookups in general are expected to both take a list as input and output a list
       # this is done so they work with the looping construct 'with_'.
       ret = []
-      display.warning("type(terms): %s" % str(type(terms)))
+      #display.warning("type(terms): %s" % str(type(terms)))
+      api_instance = UyuniAPIClient(logging.ERRO, kwargs['uyuni_host'], kwargs['uyuni_user'], kwargs['uyuni_password'])
       for term in terms:
           display.warning("term: %s" % term)
+          systemID = api_instance.get_host_id(term)
+          ret.append(api_instance.execute_api_call('system.listInstalledPackages', systemID))
 
           # Find the file in the expected search path, using a class method
           # that implements the 'expected' search path for Ansible plugins.
