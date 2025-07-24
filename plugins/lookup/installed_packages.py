@@ -29,7 +29,7 @@ DOCUMENTATION = r"""
     - if read in variable context, the file can be interpreted as YAML if the content is valid to the parser.
     - this lookup does not understand globbing --- use the fileglob lookup instead.
 """
-from ansible.errors import AnsibleError, AnsibleParserError
+#from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.plugins.lookup import LookupBase
 from ansible.utils.display import Display
 
@@ -41,7 +41,7 @@ class LookupModule(LookupBase):
 
       # First of all populate options,
       # this will already take into account env vars and ini config
-      self.set_options(var_options=variables, direct=kwargs)
+      #self.set_options(var_options=variables, direct=kwargs)
 
       # lookups in general are expected to both take a list as input and output a list
       # this is done so they work with the looping construct 'with_'.
