@@ -51,7 +51,7 @@ class LookupModule(LookupBase):
       # this is done so they work with the looping construct 'with_'.
       ret = []
       #display.warning("type(terms): %s" % str(type(terms)))
-      api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']))
+      api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']), use_datetime=True)
       for term in terms:
           display.warning("term: %s" % term)
           systemID = api_instance.get_host_id(term)
