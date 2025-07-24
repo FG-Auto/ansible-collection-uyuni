@@ -46,9 +46,9 @@ class LookupModule(LookupBase):
       # lookups in general are expected to both take a list as input and output a list
       # this is done so they work with the looping construct 'with_'.
       ret = []
-      display.error("type(terms): %s" % str(type(terms)))
+      display.warning("type(terms): %s" % str(type(terms)))
       for term in terms:
-          display.debug("term: %s" % term)
+          display.warning("term: %s" % term)
 
           # Find the file in the expected search path, using a class method
           # that implements the 'expected' search path for Ansible plugins.
