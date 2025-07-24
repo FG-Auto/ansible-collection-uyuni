@@ -46,7 +46,7 @@ class LookupModule(LookupBase):
       # lookups in general are expected to both take a list as input and output a list
       # this is done so they work with the looping construct 'with_'.
       ret = []
-      display.debug("type(terms): %s" % str(type(terms)))
+      display.error("type(terms): %s" % str(type(terms)))
       for term in terms:
           display.debug("term: %s" % term)
 
