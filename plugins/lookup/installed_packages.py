@@ -42,13 +42,6 @@ display = Display()
 class LookupModule(LookupBase):
 
     def run(self, terms, variables=None, **kwargs):
-
-      # First of all populate options,
-      # this will already take into account env vars and ini config
-      #self.set_options(var_options=variables, direct=kwargs)
-
-      # lookups in general are expected to both take a list as input and output a list
-      # this is done so they work with the looping construct 'with_'.
       ret = []
       #display.warning("type(terms): %s" % str(type(terms)))
       api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']), use_datetime=True)
@@ -56,28 +49,5 @@ class LookupModule(LookupBase):
           #display.warning("term: %s" % term)
           systemID = api_instance.get_host_id(term)
           ret.append(api_instance.execute_api_call('system.listInstalledPackages', systemID))
-
-          # Find the file in the expected search path, using a class method
-          # that implements the 'expected' search path for Ansible plugins.
-#          lookupfile = self.find_file_in_search_path(variables, 'files', term)
-
-          # Don't use print or your own logging, the display class
-          # takes care of it in a unified way.
-        #   display.vvvv(u"File lookup using %s as file" % lookupfile)
-        #   try:
-        #       if lookupfile:
-        #           contents, show_data = self._loader._get_file_contents(lookupfile)
-        #           ret.append(contents.rstrip())
-        #       else:
-        #           # Always use ansible error classes to throw 'final' exceptions,
-        #           # so the Ansible engine will know how to deal with them.
-        #           # The Parser error indicates invalid options passed
-        #           raise AnsibleParserError()
-        #   except AnsibleParserError:
-        #       raise AnsibleError("could not locate file in lookup: %s" % term)
-
-        #   # consume an option: if this did something useful, you can retrieve the option value here
-        #   if self.get_option('option1') == 'do something':
-        #     pass
 
       return ret
