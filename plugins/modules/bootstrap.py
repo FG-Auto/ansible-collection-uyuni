@@ -18,7 +18,7 @@ import ssl
 from contextlib import contextmanager
 from xmlrpc.client import ServerProxy
 #from operator import itemgetter
-
+from ..module_utils.uyuni import UyuniAPIClient
 
 @contextmanager
 def SuMaConnection(sumaHost, sumaUser, sumaPwd):
@@ -31,19 +31,17 @@ def SuMaConnection(sumaHost, sumaUser, sumaPwd):
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
-    module_args = dict(
-        uyuni_host = dict(type='str', required=True),
-        uyuni_user = dict(type='str', required=True),
-        uyuni_password =  dict(type='str', required=True),
-        minion =   dict(type='str', required=True),
-        minionUser = dict(type='str', required=False, default='root'),
-        minionPort = dict(type='int', required=False, default=22),
-        ## exact one of minionPwd/minionPrivKey must be given
-        minionPwd = dict(type='str', required=False, default=None),
-        minionPrivKey = dict(type='str', required=False, description="un-encrypted private key", default=None),
-        activationKey = dict(type='str', required=True),
-        force         = dict(type='bool', required=False, default=False),
-    )
+    
+    module_args = dict( **UyuniAPIClient.argument_spec(),
+                        minion =   dict(type='str', required=True),
+                        minionUser = dict(type='str', required=False, default='root'),
+                        minionPort = dict(type='int', required=False, default=22),
+                        ## exact one of minionPwd/minionPrivKey must be given
+                        minionPwd = dict(type='str', required=False, default=None, no_log=True),
+                        minionPrivKey = dict(type='str', required=False, description="un-encrypted private key", default=None),
+                        activationKey = dict(type='str', required=True),
+                        force         = dict(type='bool', required=False, default=False),
+                    )
 
     # seed the result dict in the object
     # we primarily care about changed and state

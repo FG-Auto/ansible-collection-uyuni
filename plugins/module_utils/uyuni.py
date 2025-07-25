@@ -43,6 +43,18 @@ class UyuniAPIClient:
     dict: Default headers set for every HTTP request
     """
 
+    @classmethod
+    def argument_spec(cls) :
+        argument_spec = dict(
+                uyuni_host=dict(type='str', required=True),
+                uyuni_user=dict(type='str', required=True),
+                uyuni_password=dict(type='str', required=True, no_log=True),
+                uyuni_port=dict(default=443, type='int'),
+                uyuni_verify_ssl=dict(default=True, type='bool'),
+        )
+        return argument_spec
+    
+
     def __init__(
             self, log_level, hostname, username, password,
             port=443, verify=True, use_datetime = False
