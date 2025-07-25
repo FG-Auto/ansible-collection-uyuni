@@ -8,3 +8,5 @@ __pycache__
 demo_*.*
 .ansible
 .vscode
+ansible.cfg
+distUpgrade.yml

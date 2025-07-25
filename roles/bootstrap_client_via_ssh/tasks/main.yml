@@ -1,0 +1,74 @@
+---
+# tasks file for bootstrap_client_via_ssh
+- name: create temporary ssh key pair on command host
+  delegate_to: localhost
+  become: false
+  block:
+  - name: create .ssh folder on localhost
+    ansible.builtin.file:
+      path: "{{ bootstrap_client_via_ssh__ssh_private_key_path | dirname }}"
+      mode: '0700'
+      state: directory
+  - name: Generate an OpenSSH keypair
+    community.crypto.openssh_keypair:
+      path: "{{ bootstrap_client_via_ssh__ssh_private_key_path }}"
+      comment: "temporary for bootstraping {{ inventory_hostname }}"
+    register: bootstrap_client_via_ssh__tempSshKeyPair
+
+- block:
+  # - debug:
+  #     msg: "services={{ ansible_facts['services'] }}"
+  # - debug:
+  #     msg: "{{ tempSshKeyPair.filename }}"
+  # - name: prepare re-registration
+  - name: stop salt minion
+    ansible.builtin.service:
+      name: "{{ item }}"
+      state: stopped
+    with_items:
+      - venv-salt-minion.service
+
+  - name: remove old salt master key
+    file:
+      dest: "/etc/{{ item }}/pki/minion/minion_master.pub"
+      state: absent
+    with_items:
+      - venv-salt-minion
+    when: ansible_facts['services'].keys() | intersect([ item + '.service']) | length > 0
+
+  - name: add temp ssh key to target system
+    ansible.posix.authorized_key:
+      user: root
+      key: "{{ bootstrap_client_via_ssh__tempSshKeyPair.public_key }}"
+      comment: "{{ bootstrap_client_via_ssh__tempSshKeyPair.comment }}"
+
+  - name: Bootstrap minion
+    stdevel.uyuni.bootstrap:
+      uyuni_host: "{{ uyuni_host }}"
+      uyuni_user: "{{ uyuni_user }}"
+      uyuni_password: "{{ uyuni_password }}"
+      minion: "{{ minion_to_bootstrap }}"
+      minionUser: "{{ minion_user_for_ssh_connection }}"
+      minionPort: "{{ minion_ssh_port }}"
+      minionPrivKey: "{{ lookup('file', bootstrap_client_via_ssh__tempSshKeyPair.filename) }}"  ## <- private key
+      activationKey: "{{ activation_key }}"
+      force: true
+    delegate_to: localhost
+    become: false
+
+  always: # clean-up "backdoor ssh keys"
+  - name: clean-up temporary ssh key
+    block:
+    - ansible.posix.authorized_key:
+        user: root
+        key: "{{ bootstrap_client_via_ssh__tempSshKeyPair.public_key }}"
+        state: absent
+    
+    - file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ bootstrap_client_via_ssh__tempSshKeyPair.filename }}"
+        - "{{ bootstrap_client_via_ssh__tempSshKeyPair.filename }}.pub"
+      delegate_to: localhost
+      become: false

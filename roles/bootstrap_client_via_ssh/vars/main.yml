@@ -1,0 +1,3 @@
+---
+# vars file for bootstrap_client_via_ssh
+bootstrap_client_via_ssh__ssh_private_key_path: "~/.ssh/id_ssh_rsa_{{ inventory_hostname }}"

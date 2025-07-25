@@ -1,0 +1,6 @@
+---
+# defaults file for bootstrap_client_via_ssh
+minion_user_for_ssh_connection: "root"
+minion_ssh_port: 22
+force_bootstrap: false
+## must be keeped in sync with ../meta/argument_specs.yml!!

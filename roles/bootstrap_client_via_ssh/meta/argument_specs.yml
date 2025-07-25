@@ -1,0 +1,46 @@
+## refer https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html#role-argument-validation
+main: ## entry-point
+  short_description:
+  description:
+  author: Klaus Hildebrandt
+  options:
+    uyuni_host:
+      type: "str"
+      required: true
+      description: hostname of uyuni/SuMa host
+    uyuni_user:
+      type: "str"
+      required: true
+      description: user to use during connect
+    uyuni_password:
+      type: "str"
+      required: true
+      description: password to use during connect
+    
+    minion_to_bootstrap: 
+      type: "str"
+      required: true
+      description: hostname of minion that schould be boostraped
+    
+    activation_key:
+      type: "str"
+      required: true
+      description: activation key for boostraping
+
+    minion_user_for_ssh_connection: 
+      type: "str"
+      required: false
+      default: root    ## must be keeped in sync with ../default/main.yml!!
+      description: username on target host/minion, that will be used during bootsraping. Must be able to execute action as root    
+
+    minion_ssh_port:
+      type: "int"
+      required: false
+      default: 22    ## must be keeped in sync with ../default/main.yml!!
+      description: port on minion to connect over ssh. Must be reacheble from uyuni/SuMa server    
+
+    force_bootstrap:
+      type: "bool"
+      required: false
+      default: false    ## must be keeped in sync with ../default/main.yml!!
+      description: if minion is already present normal-mode exited immediatly. In force mode, minion will be deleted and bootstraped     
