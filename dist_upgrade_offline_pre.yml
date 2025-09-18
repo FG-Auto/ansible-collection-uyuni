@@ -1,0 +1,143 @@
+- name: prepare offline upgrade
+  hosts:
+    - all
+  vars:
+    suma:
+      hostname: 'ezszis6z.ez.edeka.net'
+      user: admin
+      password: edeka123
+    vSphere:
+      hostname: vcenter.adm.dmz.ez.edeka.net
+      user: tech_saplama
+      password: J3Fduufx3lXXZ4ZFlCudcg
+
+    packages4installAfterUpgrade: []
+    #newActivationKey: 1-eddi-release-50-sle154-latest 
+    #newActivationKey: 1-sles15sp5-latest
+    #newActivationKey: 1-sles15sp6-latest
+    #newActivationKey: 1-sles15sp7-latest
+
+    ## sles12sp5 -> sles15sp7 ok (supported)
+    
+  become: True
+  gather_facts: False
+
+  pre_tasks:
+    # - name: Populate service facts
+    #   ansible.builtin.service_facts:
+
+    - set_fact:
+        activation_key_on_playbook_start: "{{ lookup('stdevel.uyuni.activation_keys', inventory_hostname, uyuni_host=suma.hostname, uyuni_user=suma.user, uyuni_password=suma.password) }}"    
+
+    - debug:
+        msg: "old aktivation key={{ activation_key_on_playbook_start }}"
+
+  tasks:
+    - block:
+      ## snaphost
+
+      - name: stop services
+        ansible.builtin.service:
+          name: "{{ item }}"
+          state: stopped
+          enabled: False
+        with_items:
+          - cron.service
+          - venv-salt-minion.service
+      
+     
+      - name: update to latest stand old distribution
+        community.general.zypper:
+          pkg: "*"
+          state: latest
+          refresh: true
+      #     allow_vendor_change: True
+      #     replacefiles: True
+
+      - name: List registered repositories
+        community.general.zypper_repository_info:
+        register: repositories
+
+      - name: remove repos
+        community.general.zypper_repository:
+          repo: "{{ item }}"
+          state: absent
+        with_items: "{{ repositories.repodatalist | map(attribute='name') | list}}"
+
+      - name: remove product rpms
+        community.general.zypper:
+          pkg:
+            - sles-ltss-release 
+            - sles-ltss-release-POOL
+            - sle-module-hpc-release
+            - sle-module-hpc-release-POOL
+          state: absent
+      
+      - name: remove client from SuMa
+        stdevel.uyuni.client_absent:
+          uyuni_host: "{{ suma.hostname }}"
+          uyuni_user: "{{ suma.user }}"
+          uyuni_password: "{{ suma.password }}"
+          minion: "{{ inventory_hostname }}"
+        delegate_to: localhost
+        become: False
+      
+      - name: Gather one specific VM
+        community.vmware.vmware_vm_info:
+          hostname: "{{ vSphere.hostname }}"
+          username: "{{ vSphere.user }}"
+          password: "{{ vSphere.password }}"
+          validate_certs: false
+          vm_name: "{{ inventory_hostname.split('.')[0] }}"
+        delegate_to: localhost
+        become: False
+        register: vm_info
+
+      - name: power off the machine
+        community.vmware.vmware_guest_powerstate:
+          hostname: "{{ vSphere.hostname }}"
+          username: "{{ vSphere.user }}"
+          password: "{{ vSphere.password }}"
+          validate_certs: false
+          folder: "{{ (vm_info.virtual_machines | selectattr('guest_name', 'eq', inventory_hostname.split('.')[0]) | first)['folder'] }}"
+          name: "{{ inventory_hostname.split('.')[0] }}"
+          state: powered-off
+        delegate_to: localhost
+        become: False
+
+      # ## remove all IDE cdrom/dvd 
+      # - name: remove all cdrom's (dvd's)
+      #   community.vmware.vmware_guest:
+      #     hostname: "{{ vSphere.hostname }}"
+      #     username: "{{ vSphere.user }}"
+      #     password: "{{ vSphere.password }}"
+      #     validate_certs: false
+      #     name: "{{ inventory_hostname.split('.')[0] }}"
+      #     folder: "{{ (vm_info.virtual_machines | selectattr('guest_name', 'eq', inventory_hostname.split('.')[0]) | first)['folder'] }}"
+      #     cdrom:
+      #       - controller_number: "{{ item.0 }}"
+      #         unit_number: "{{ item.1 }}"
+      #         state: absent
+      #   loop: "{{ [0, 1] | product([0, 1]) | list }}"
+      #   delegate_to: localhost
+      #   become: False
+
+      # - name: Attach ISO
+      #   community.vmware.vmware_guest:
+      #     hostname: "{{ vSphere.hostname }}"
+      #     username: "{{ vSphere.user }}"
+      #     password: "{{ vSphere.password }}"
+      #     validate_certs: false
+      #     name: "{{ inventory_hostname.split('.')[0] }}"
+      #     folder: "{{ (vm_info.virtual_machines | selectattr('guest_name', 'eq', inventory_hostname.split('.')[0]) | first)['folder'] }}"
+      #     cdrom:
+      #       - controller_number: 0
+      #         unit_number: 0
+      #         state: present
+      #         type: iso
+      #         iso_path: "[W1_LINUX_SILBER_DS001] SLE-15-SP7-Full-x86_64-GM-Media1.iso"
+      #   delegate_to: localhost
+      #   become: False
+      
+      - debug:
+          msg: "power-on {{ inventory_hostname }} and boot from network (iso is already in)"

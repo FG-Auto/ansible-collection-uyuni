@@ -1,0 +1,96 @@
+- name: spread offline upgrade
+  hosts:
+    - all
+  vars:
+    suma:
+      hostname: 'ezszis6z.ez.edeka.net'
+      user: admin
+      password: edeka123
+    vSphere:
+      hostname: vcenter.adm.dmz.ez.edeka.net
+      user: tech_saplama
+      password: J3Fduufx3lXXZ4ZFlCudcg
+
+    #newActivationKey: 1-eddi-release-50-sle154-latest 
+    #newActivationKey: 1-sles15sp5-latest
+    #newActivationKey: 1-sles15sp6-latest
+    newActivationKey: 1-sles15sp7-latest
+
+    ## sles12sp5 -> sles15sp7 ?? (supported)
+    
+  become: True
+  gather_facts: false
+
+  pre_tasks:
+    # - name: Populate service facts
+    #   ansible.builtin.service_facts:
+
+    # # - set_fact:
+    #     activation_key_on_playbook_start: "{{ lookup('stdevel.uyuni.activation_keys', inventory_hostname, uyuni_host=suma.hostname, uyuni_user=suma.user, uyuni_password=suma.password) }}"    
+
+    # - debug:
+    #     msg: "old aktivation key={{ activation_key_on_playbook_start }}"
+
+
+  # tasks:
+  #   - block:
+   
+ 
+  #     - name: stop services
+  #       ansible.builtin.service:
+  #         name: "{{ item }}"
+  #         state: stopped
+  #         enabled: False
+  #       with_items:
+  #         - cron.service
+  #         - venv-salt-minion.service
+
+  #       - name: get repos
+  #         community.general.zypper_repository_info: {}
+  #         register: repositories
+        
+  #       - debug:
+  #           msg: "repos = {{ repositories }}"
+
+  #       - name: remove repos repos from dvd
+  #         community.general.zypper_repository:
+  #           repo: "{{ item }}"
+  #           state: absent
+  #         with_items: "{{ repositories.repodatalist | selectattr('enabled', 'eq', '0') | map(attribute='name') | list}}"
+
+  #     ## remove salt key from SuMa
+
+  #     - block:
+  #       - name: Bootstrap minion with new activation key
+  #         ansible.builtin.include_role:
+  #           name: stdevel.uyuni.bootstrap_client_via_ssh
+  #         vars:
+  #           uyuni_host: "{{ suma }}"
+  #           uyuni_user: "{{ sumaUser }}"
+  #           uyuni_password: "{{ sumaPwd }}"
+  #           minion_to_bootstrap: "{{ inventory_hostname }}" 
+  #           activation_key: "{{ newActivationKey }}"
+  #           force_bootstrap: true
+  #         delegate_to: localhost
+  #         become: false
+
+  #     - ansible.builtin.pause:
+  #         minutes: 1
+     
+  #     - name: stop services (again)
+  #       ansible.builtin.service:
+  #         name: "{{ item }}"
+  #         state: stopped
+  #         enabled: False
+  #       with_items:
+  #         - cron.service
+  #         - venv-salt-minion.service
+
+  #     - name: update to latest stand new distribution
+  #       community.general.zypper:
+  #         pkg: "*"
+  #         state: latest
+  #         refresh: true
+  #         disable_gpg_check: true
+  #     #     allow_vendor_change: True
+  #         replacefiles: true
