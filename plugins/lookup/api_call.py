@@ -45,7 +45,7 @@ class LookupModule(LookupBase):
     def run(self, terms, variables=None, **kwargs):
       #display.warning("type(terms): %s" % str(type(terms)))
       named_params = dict(use_datetime=True)
-      if 'uyuni_verify_ssl' in kwargs:
+      if 'verify' in kwargs:
          named_params['uyuni_verify_ssl'] = kwargs['uyuni_verify_ssl']
 
       api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']), **named_params)

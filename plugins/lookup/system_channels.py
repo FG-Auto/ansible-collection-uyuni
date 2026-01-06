@@ -25,6 +25,7 @@ DOCUMENTATION = r"""
           key: option1
     uyuni_user:
     uyuni_password:
+    uyuni_verify_ssl:
 
   notes:
     - if read in variable context, the file can be interpreted as YAML if the content is valid to the parser.
@@ -48,7 +49,7 @@ class LookupModule(LookupBase):
       #display.warning("type(terms): %s" % str(type(terms)))
       named_params = dict(use_datetime=True)
       if 'uyuni_verify_ssl' in kwargs:
-         named_params['uyuni_verify_ssl'] = kwargs['uyuni_verify_ssl']
+         named_params['verify'] = kwargs['uyuni_verify_ssl']
       api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']), **named_params)
       for term in terms:
           #display.warning("term: %s" % term)
