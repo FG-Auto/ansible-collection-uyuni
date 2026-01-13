@@ -46,6 +46,14 @@
       key: "{{ bootstrap_client_via_ssh__tempSshKeyPair.public_key }}"
       comment: "{{ bootstrap_client_via_ssh__tempSshKeyPair.comment }}"
 
+  - name: remove salt-key
+    stdevel.uyuni.salt_key:
+      uyuni_host: "{{ uyuni_host }}"
+      uyuni_user: "{{ uyuni_user }}"
+      uyuni_password: "{{ uyuni_password }}"
+      minion: "{{ minion_to_bootstrap }}"
+      state: absent
+
   - name: Bootstrap minion
     stdevel.uyuni.bootstrap:
       uyuni_host: "{{ uyuni_host }}"
