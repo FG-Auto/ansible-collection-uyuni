@@ -38,7 +38,7 @@
       state: absent
     with_items:
       - venv-salt-minion
-    when: ansible_facts['services'].keys() | intersect([ item + '.service']) | length > 0
+    when: ansible_facts['services'].values() | rejectattr('status', 'equalto', 'not-found') | map(attribute='name') | intersect([ item + '.service']) | length > 0
 
   - name: add temp ssh key to target system
     ansible.posix.authorized_key:
