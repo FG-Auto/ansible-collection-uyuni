@@ -28,6 +28,10 @@
     with_items:
       - venv-salt-minion.service
 
+  - name: Populate service facts
+    ansible.builtin.service_facts:
+    when: not (ansible_facts.services is defined)
+
   - name: remove old salt master key
     file:
       dest: "/etc/{{ item }}/pki/minion/minion_master.pub"
