@@ -44,9 +44,10 @@ display = Display()
 class LookupModule(LookupBase):
 
     def run(self, terms, variables=None, **kwargs):
-        ret = []
         #display.warning("type(terms): %s" % str(type(terms)))
-        api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']), use_datetime=True)
+        api_instance = UyuniAPIClient(logging.ERROR, str(kwargs['uyuni_host']), str(kwargs['uyuni_user']), str(kwargs['uyuni_password']), 
+                                      **dict(filter(lambda x: x[1] is not None, dict(use_datetime=True, verify=kwargs.get('uyuni_verify_ssl', None)).items()))
+                                      )
         result = api_instance.execute_api_call('system.listSystems')
         
         dt_fmt = kwargs.get('datetime_fmt', '%Y-%m-%dT%H:%M:%S')
