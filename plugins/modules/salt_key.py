@@ -60,7 +60,7 @@ def run_module():
                                  )
     minionID = module.params.get('minion')
 
-    keys = sum(map(lambda x: api_instance.execute_api_call(f'saltkey.{x}'), ['acceptedList', 'rejectedList', 'deniedList', 'pendingList'] ), start=[])
+    keys = sum(map(lambda x: api_instance.execute_api_call(f'saltkey.{x}'), ['acceptedList', 'rejectedList', 'deniedList', 'pendingList'] ), [])
     
     if minionID in keys :
         api_instance.execute_api_call('system.delete', minionID)
