@@ -63,7 +63,7 @@ def run_module():
     keys = sum(map(lambda x: api_instance.execute_api_call(f'saltkey.{x}'), ['acceptedList', 'rejectedList', 'deniedList', 'pendingList'] ), [])
     
     if minionID in keys :
-        api_instance.execute_api_call('system.delete', minionID)
+        api_instance.execute_api_call('saltkey.delete', minionID)
         result['changed'] = True
     else:
         result['changed'] = False
