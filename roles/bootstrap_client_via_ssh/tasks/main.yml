@@ -21,32 +21,37 @@
   # - debug:
   #     msg: "{{ tempSshKeyPair.filename }}"
   # - name: prepare re-registration
-  - name: stop salt minion
-    ansible.builtin.service:
-      name: "{{ item }}"
-      state: stopped
-    with_items:
-      - venv-salt-minion.service
 
   - name: Populate service facts
     ansible.builtin.service_facts:
     when: not (ansible_facts.services is defined)
 
-  - name: remove old salt master key
-    file:
-      dest: "/etc/{{ item }}/pki/minion/minion_master.pub"
-      state: absent
-    with_items:
-      - venv-salt-minion
-    when: ansible_facts['services'].values() | rejectattr('status', 'equalto', 'not-found') | map(attribute='name') | intersect([ item + '.service']) | length > 0
+  - name: Detect salt-minion services
+    ansible.builtin.set_fact:
+      salt_minion_services: "{{ ansible_facts['services'].values() |
+                                 rejectattr('status', 'equalto', 'not-found') |
+                                 selectattr('name', 'search', 'salt-minion\\.service') |
+                                 map(attribute='name') | list }}"
 
-  - name: add temp ssh key to target system
+  - name: Stop salt minion
+    ansible.builtin.service:
+      name: "{{ item }}.service"
+      state: stopped
+    with_items: "{{ salt_minion_services }}"
+
+  - name: Remove old salt master key
+    file:
+      dest: "/etc/{{ item.split('.') | first }}/pki/minion/minion_master.pub"
+      state: absent
+    with_items: "{{ salt_minion_services }}"
+
+  - name: Add temp ssh key to target system
     ansible.posix.authorized_key:
       user: root
       key: "{{ bootstrap_client_via_ssh__tempSshKeyPair.public_key }}"
       comment: "{{ bootstrap_client_via_ssh__tempSshKeyPair.comment }}"
 
-  - name: remove salt-key
+  - name: Remove salt-key (if any present)
     stdevel.uyuni.salt_key:
       uyuni_host: "{{ uyuni_host }}"
       uyuni_user: "{{ uyuni_user }}"
@@ -69,14 +74,14 @@
     become: false
 
   always: # clean-up "backdoor ssh keys"
-  - name: clean-up temporary ssh key
+  - name: Clean-up temporary ssh key
     block:
     - ansible.posix.authorized_key:
         user: root
         key: "{{ bootstrap_client_via_ssh__tempSshKeyPair.public_key }}"
         state: absent
-    
-    - file:
+
+    - ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       with_items:
