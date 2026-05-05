@@ -1,0 +1,16 @@
+workflow:
+  rules:
+    # Push auf dev/edeka-it
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev/edeka-it"'
+
+    # Merge Request Pipelines
+    #- if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+    # alles andere verhindern
+    - when: never
+
+reinstall_collection:
+  trigger:
+    project: zis/linux-systeme/edeka-it-ansible
+    branch: main
+    strategy: depend
